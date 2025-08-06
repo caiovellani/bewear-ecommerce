@@ -4,6 +4,7 @@ import Image from "next/image";
 import CategorySelector from "@/components/commom/category-selector";
 import Footer from "@/components/commom/footer";
 import { Header } from "@/components/commom/header";
+import PartnersBrands from "@/components/commom/partners-brands";
 import ProductList from "@/components/commom/product-list";
 import { db } from "@/db";
 import { productTable } from "@/db/schema";
@@ -37,6 +38,13 @@ const Home = async () => {
             sizes="100vw"
             className="h-auto w-full"
           />
+        </div>
+
+        <div className="space-y-6">
+          <h3 className="px-5 font-semibold">Marcas parceiras</h3>
+          <div className="flex w-full gap-6 overflow-x-auto px-5 [&::-webkit-scrollbar]:hidden">
+            <PartnersBrands />
+          </div>
         </div>
 
         <ProductList products={products} title="Mais vendidos" />
