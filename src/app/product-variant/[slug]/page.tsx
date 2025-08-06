@@ -2,12 +2,11 @@ import { eq } from "drizzle-orm";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-import QuantitySelector from "@/app/product-variant/[slug]/components/quantity-selector";
+import ProductActions from "@/app/product-variant/[slug]/components/product-actions";
 import VariantSelector from "@/app/product-variant/[slug]/components/variant-selector";
 import Footer from "@/components/commom/footer";
 import { Header } from "@/components/commom/header";
 import ProductList from "@/components/commom/product-list";
-import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { productTable } from "@/db/schema";
 import { formatCentsToBRL } from "@/helpers/money";
@@ -68,18 +67,8 @@ const ProductVariantPage = async ({ params }: IProductVariantPageProps) => {
             {formatCentsToBRL(productVariant.priceInCents)}
           </h3>
         </div>
-        <div className="px-5">
-          <QuantitySelector />
-        </div>
 
-        <div className="flex flex-col space-y-4 px-5">
-          <Button size="lg" variant="outline" className="rounded-full">
-            Adicionar na sacola
-          </Button>
-          <Button className="rounded-full" size="lg">
-            Comprar agora
-          </Button>
-        </div>
+        <ProductActions productVariantId={productVariant.id} />
 
         <div className="px-5">
           <p className="text-shadow-amber-600">
