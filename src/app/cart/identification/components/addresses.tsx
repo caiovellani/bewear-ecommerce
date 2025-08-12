@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCreateShippingAddress } from "@/hooks/mutations/use-create-shipping-address";
+import { useUserAddresses } from "@/hooks/queries/use-user-addresses";
 
 const formSchema = z.object({
   email: z.email("E-mail inválido"),
@@ -38,14 +39,10 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// interface IAddressesProps {
-//   shippingAddresses: (typeof shippingAddressTable.$inferSelect)[];
-//   defaultShippingAdressId: string | null;
-// }
-
 const Addresses = () => {
   const [selectedAddress, setSeletectedAddress] = useState<string | null>(null);
   const createShippingAddressMutation = useCreateShippingAddress();
+  const { data: addresses, isLoading } = useUserAddresses();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -66,10 +63,11 @@ const Addresses = () => {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await createShippingAddressMutation.mutateAsync(values);
+      const newAddress =
+        await createShippingAddressMutation.mutateAsync(values);
       toast.success("Endereço criado com sucesso");
       form.reset();
-      setSeletectedAddress(null);
+      setSeletectedAddress(newAddress.id);
     } catch (err) {
       toast.error("Erro ao criar endereço. Tente novamente");
       console.error(err);
@@ -81,20 +79,61 @@ const Addresses = () => {
       <CardHeader>
         <CardTitle>Identificação</CardTitle>
       </CardHeader>
+
       <CardContent>
-        <RadioGroup
-          value={selectedAddress}
-          onValueChange={setSeletectedAddress}
-        >
-          <Card>
-            <CardContent>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="add_new" id="add_new" />
-                <Label htmlFor="add_new">Adicionar novo endereço</Label>
+        {isLoading ? (
+          <div className="py-4 text-center">
+            <p>Carregando endereços...</p>
+          </div>
+        ) : (
+          <RadioGroup
+            value={selectedAddress ?? undefined}
+            onValueChange={setSeletectedAddress}
+          >
+            {(!addresses || addresses.length === 0) && (
+              <div className="py-4 text-center">
+                <p className="text-muted-foreground">
+                  Você ainda não possui endereços cadastrados.
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </RadioGroup>
+            )}
+
+            {addresses?.map((address) => {
+              const id = `addr-${address.id}`;
+              return (
+                <Card key={address.id} className="mt-2">
+                  <CardContent className="pt-6">
+                    <div className="flex items-start gap-2">
+                      <RadioGroupItem value={address.id} id={id} />
+                      <Label htmlFor={id} className="flex-1 cursor-pointer">
+                        <p className="text-sm">
+                          {address.recipientName} • {address.street},{" "}
+                          {address.number}
+                          {address.complement
+                            ? `, ${address.complement}`
+                            : ""}, {address.neighborhood}, {address.city} -{" "}
+                          {address.state} • CEP: {address.zipCode}
+                        </p>
+                      </Label>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+
+            <Card className="mt-3">
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="add_new" id="add_new" />
+                  <Label htmlFor="add_new" className="cursor-pointer">
+                    Adicionar novo endereço
+                  </Label>
+                </div>
+              </CardContent>
+            </Card>
+          </RadioGroup>
+        )}
+
         {selectedAddress === "add_new" && (
           <Form {...form}>
             <form
@@ -115,7 +154,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="fullName"
@@ -132,7 +170,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="cpf"
@@ -151,7 +188,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="phone"
@@ -170,7 +206,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="zipCode"
@@ -189,7 +224,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="address"
@@ -203,7 +237,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="number"
@@ -217,7 +250,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="complement"
@@ -234,7 +266,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="neighborhood"
@@ -248,7 +279,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="city"
@@ -262,7 +292,6 @@ const Addresses = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="state"
